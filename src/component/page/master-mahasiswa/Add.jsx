@@ -1,68 +1,32 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { object, string } from "yup";
 import { API_LINK } from "../../util/Constants";
 import { validateAllInputs, validateInput } from "../../util/ValidateForm";
 import SweetAlert from "../../util/SweetAlert";
 import UseFetch from "../../util/UseFetch";
-import UploadFile from "../../util/UploadFile";
 import Button from "../../part/Button";
 import Input from "../../part/Input";
-import FileUpload from "../../part/FileUpload";
 import Loading from "../../part/Loading";
 import Alert from "../../part/Alert";
-import Label from "../../part/Label";
 
-export default function MasterPicEdit({ onChangePage, withID }) {
+export default function MasterPICAdd({ onChangePage }) {
   const [errors, setErrors] = useState({});
   const [isError, setIsError] = useState({ error: false, message: "" });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const formDataRef = useRef({
-    // idPic: "",
     username: "",
     namaPic: "",
   });
 
-  //const fileModulRef = useRef(null);
-
   const userSchema = object({
-    idPic: string(),
     username: string()
-      .max(100, "maksimum 50 karakter")
-      .required("harus diisi"),
+    .max(100, "maksimum 50 karakter")
+    .required("harus diisi"),
     namaPic: string()
     .max(100, "maksimum 100 karakter")
     .required("harus diisi"),
   });
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsError((prevError) => ({ ...prevError, error: false }));
-
-      try {
-        const data = await UseFetch(
-          API_LINK + "MasterPic/GetDataPicById",
-          { id: withID }
-        );
-
-        if (data === "ERROR" || data.length === 0) {
-          throw new Error("Terjadi kesalahan: Gagal mengambil data PIC.");
-        } else {
-          formDataRef.current = { ...formDataRef.current, ...data[0] };
-        }
-      } catch (error) {
-        setIsError((prevError) => ({
-          ...prevError,
-          error: true,
-          message: error.message,
-        }));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   const handleInputChange = async (e) => {
     const { name, value } = e.target;
@@ -74,23 +38,7 @@ export default function MasterPicEdit({ onChangePage, withID }) {
     }));
   };
 
-  const handleFileChange = async (ref, extAllowed) => {
-    const { name, value } = ref.current;
-    const file = ref.current.files[0];
-    const fileName = file.name;
-    const fileExt = fileName.split(".").pop().toLowerCase();
-    const validationError = await validateInput(name, value, userSchema);
-    let error = "";
-
-    if (error) ref.current.value = "";
-
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      [validationError.name]: error,
-    }));
-  };
-
-  const handleEdit = async (e) => {
+  const handleAdd = async (e) => {
     e.preventDefault();
 
     const validationErrors = await validateAllInputs(
@@ -104,21 +52,9 @@ export default function MasterPicEdit({ onChangePage, withID }) {
       setIsError((prevError) => ({ ...prevError, error: false }));
       setErrors({});
 
-      //const uploadPromises = [];
-
-      //if (fileModulRef.current.files.length > 0) {
-      //  uploadPromises.push(
-      //    UploadFile(fileModulRef.current).then(
-      //      (data) => (formDataRef.current["modul"] = data.Hasil)
-      //    )
-      //  );
-      //}
-
       try {
-        //await Promise.all(uploadPromises);
-
         const data = await UseFetch(
-          API_LINK + "MasterPic/EditPic",
+          API_LINK + "MasterPic/CreatePic",
           formDataRef.current
         );
 
@@ -149,14 +85,14 @@ export default function MasterPicEdit({ onChangePage, withID }) {
           <Alert type="danger" message={isError.message} />
         </div>
       )}
-      <form onSubmit={handleEdit}>
+      <form onSubmit={handleAdd}>
         <div className="card">
           <div className="card-header bg-primary fw-medium text-white">
-            Ubah Data PIC
+            Tambah Data PIC Baru
           </div>
           <div className="card-body p-4">
             <div className="row">
-              <div className="col-lg-3">
+              <div className="col-lg-6">
                 <Input
                   type="text"
                   forInput="username"
@@ -165,13 +101,14 @@ export default function MasterPicEdit({ onChangePage, withID }) {
                   value={formDataRef.current.username}
                   onChange={handleInputChange}
                   errorMessage={errors.username}
-              />
+                />
               </div>
-              <div className="col-lg-3">
+              <div className="col-lg-6">
                 <Input
                   type="text"
                   forInput="namaPic"
                   label="Nama PIC"
+                  isRequired
                   value={formDataRef.current.namaPic}
                   onChange={handleInputChange}
                   errorMessage={errors.namaPic}

@@ -23,11 +23,11 @@ export default function MasterPicEdit({ onChangePage, withID }) {
     namaPic: "",
   });
 
-  //const fileModulRef = useRef(null);
+  const fileModulRef = useRef(null);
 
   const userSchema = object({
-    idPic: string(),
-    username: string()
+    idProses: string(),
+    usernamePic: string()
       .max(100, "maksimum 50 karakter")
       .required("harus diisi"),
     namaPic: string()
@@ -90,7 +90,7 @@ export default function MasterPicEdit({ onChangePage, withID }) {
     }));
   };
 
-  const handleEdit = async (e) => {
+  const handleAdd = async (e) => {
     e.preventDefault();
 
     const validationErrors = await validateAllInputs(
@@ -104,7 +104,7 @@ export default function MasterPicEdit({ onChangePage, withID }) {
       setIsError((prevError) => ({ ...prevError, error: false }));
       setErrors({});
 
-      //const uploadPromises = [];
+      const uploadPromises = [];
 
       //if (fileModulRef.current.files.length > 0) {
       //  uploadPromises.push(
@@ -115,7 +115,7 @@ export default function MasterPicEdit({ onChangePage, withID }) {
       //}
 
       try {
-        //await Promise.all(uploadPromises);
+        await Promise.all(uploadPromises);
 
         const data = await UseFetch(
           API_LINK + "MasterPic/EditPic",
@@ -149,7 +149,7 @@ export default function MasterPicEdit({ onChangePage, withID }) {
           <Alert type="danger" message={isError.message} />
         </div>
       )}
-      <form onSubmit={handleEdit}>
+      <form onSubmit={handleAdd}>
         <div className="card">
           <div className="card-header bg-primary fw-medium text-white">
             Ubah Data PIC
