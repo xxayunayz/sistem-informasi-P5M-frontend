@@ -4,202 +4,389 @@ import { API_LINK } from "../../util/Constants";
 import { validateAllInputs, validateInput } from "../../util/ValidateForm";
 import SweetAlert from "../../util/SweetAlert";
 import UseFetch from "../../util/UseFetch";
-import UploadFile from "../../util/UploadFile";
 import Button from "../../part/Button";
 import DropDown from "../../part/Dropdown";
 import Input from "../../part/Input";
-import FileUpload from "../../part/FileUpload";
 import Loading from "../../part/Loading";
 import Alert from "../../part/Alert";
 
-const listJenisProduk = [
-  { Value: "Part", Text: "Part" },
-  { Value: "Unit", Text: "Unit" },
-  { Value: "Konstruksi", Text: "Konstruksi" },
-  { Value: "Mas Production", Text: "Mas Production" },
-  { Value: "Lainnya", Text: "Lainnya" },
+
+const inisialisasiDataProduk = [
+  {
+    Key: null,
+    No: null,
+    "Nama Produk/Jasa": null,
+    Jumlah: null,
+    Count: 0,
+  },
 ];
 
-export default function MasterKelasAdd({ onChangePage }) {
-  const [errors, setErrors] = useState({});
-  const [isError, setIsError] = useState({ error: false, message: "" });
-  const [isLoading, setIsLoading] = useState(false);
+const listJenisPermintaan = [
+  { Value: "Internal", Text: "Internal" },
+  { Value: "Eksternal", Text: "Eksternal" },
+];
 
-  const formDataRef = useRef({
-    namaProduk: "",
-    jenisProduk: "",
-    gambarProduk: "",
-    spesifikasi: "",
+const listJenisKomersial = [
+  { Value: "Komersial", Text: "Komersial" },
+  { Value: "Non-Komersial", Text: "Non-Komersial" },
+];
+
+
+ export default function MasterKelasAdd({ onChangePage }) {
+  const role = JSON.parse(decryptId(Cookies.get("activeUser"))).role;
+  const [isError, setIsError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentData, setCurrentData] = useState(inisialisasiData);
+  const [currentFilter, setCurrentFilter] = useState({
+    page: 1,
+    query: "",
+    sort: "[Tanggal Buat] desc",
+    status: "",
+    role: role,
   });
+  const [selectedClass, setSelectedClass] = useState("");
+  const [studentData, setStudentData] = useState([]);
 
-  const fileGambarRef = useRef(null);
+  const searchQuery = useRef();
+  const searchFilterSort = useRef();
+  const searchFilterStatus = useRef();
+  const classFilter = useRef();
 
-  const userSchema = object({
-    namaProduk: string()
-      .max(100, "maksimum 100 karakter")
-      .required("harus diisi"),
-    jenisProduk: string().required("harus dipilih"),
-    gambarProduk: string(),
-    spesifikasi: string(),
-  });
+  function handleSetCurrentPage(newCurrentPage) {
+    setIsLoading(true);
+    setCurrentFilter((prevFilter) => {
+      return {
+        ...prevFilter,
+        page: newCurrentPage,
+      };
+    });
+  }
 
-  const handleInputChange = async (e) => {
-    const { name, value } = e.target;
-    const validationError = await validateInput(name, value, userSchema);
-    formDataRef.current[name] = value;
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      [validationError.name]: validationError.error,
-    }));
-  };
+  function handleSearch() {
+    setIsLoading(true);
+    setCurrentFilter((prevFilter) => {
+      return {
+        ...prevFilter,
+        page: 1,
+        query: searchQuery.current.value,
+        sort: searchFilterSort.current.value,
+        status: searchFilterStatus.current.value,
+      };
+    });
+  }
 
-  const handleFileChange = async (ref, extAllowed) => {
-    const { name, value } = ref.current;
-    const file = ref.current.files[0];
-    const fileName = file.name;
-    const fileSize = file.size;
-    const fileExt = fileName.split(".").pop().toLowerCase();
-    const validationError = await validateInput(name, value, userSchema);
-    let error = "";
-
-    if (fileSize / 1024576 > 10) error = "berkas terlalu besar";
-    else if (!extAllowed.split(",").includes(fileExt))
-      error = "format berkas tidak valid";
-
-    if (error) ref.current.value = "";
-
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      [validationError.name]: error,
-    }));
-  };
-
-  const handleAdd = async (e) => {
-    e.preventDefault();
-
-    const validationErrors = await validateAllInputs(
-      formDataRef.current,
-      userSchema,
-      setErrors
+  async function handleDelete(id) {
+    const result = await SweetAlert(
+      "Hapus Data Permintaan Pelanggan",
+      "Apakah Anda yakin ingin menghapus data permintaan pelanggan ini?",
+      "warning",
+      "Ya, saya yakin!"
     );
 
-    if (Object.values(validationErrors).every((error) => !error)) {
+    if (result) {
       setIsLoading(true);
-      setIsError((prevError) => ({ ...prevError, error: false }));
-      setErrors({});
+      setIsError(false);
+      UseFetch(API_LINK + "PermintaanPelanggan/DeletePermintaanPelanggan", {
+        idPermintaan: id,
+      })
+        .then((data) => {
+          if (data === "ERROR" || data.length === 0) setIsError(true);
+          else {
+            SweetAlert(
+              "Sukses",
+              "Data permintaan pelanggan berhasil dihapus",
+              "success"
+            );
+            handleSetCurrentPage(currentFilter.page);
+          }
+        })
+        .then(() => setIsLoading(false));
+    }
+  }
 
-      const uploadPromises = [];
+  async function handleCancel(id) {
+    const result = await SweetAlert(
+      "Batalkan Permintaan Pelanggan",
+      "Apakah Anda yakin ingin membatalkan permintaan pelanggan ini?",
+      "warning",
+      "Ya, saya yakin!",
+      "textarea",
+      "Tuliskan alasan batal disini..."
+    );
 
-      if (fileGambarRef.current.files.length > 0) {
-        uploadPromises.push(
-          UploadFile(fileGambarRef.current).then(
-            (data) => (formDataRef.current["gambarProduk"] = data.Hasil)
-          )
-        );
-      }
+    if (result) {
+      setIsLoading(true);
+      setIsError(false);
+      UseFetch(API_LINK + "PermintaanPelanggan/CancelPermintaanPelanggan", {
+        idPermintaan: id,
+        alasanBatal: "\n\nAlasan batal: " + result,
+      })
+        .then((data) => {
+          if (data === "ERROR" || data.length === 0) setIsError(true);
+          else {
+            SweetAlert(
+              "Sukses",
+              "Permintaan pelanggan berhasil dibatalkan",
+              "success"
+            );
+            handleSetCurrentPage(currentFilter.page);
+          }
+        })
+        .then(() => setIsLoading(false));
+    }
+  }
+
+  async function handleSent(id) {
+    const result = await SweetAlert(
+      "Kirim Permintaan Pelanggan ke bagian Engineering",
+      "Nomor registrasi permintaan akan dibentuk dan data permintaan pelanggan ini tidak dapat diubah lagi. Apakah Anda yakin ingin mengirim data permintaan pelanggan ini ke bagian engineering untuk dilakukan analisa?",
+      "info",
+      "Ya, saya yakin!"
+    );
+
+    if (result) {
+      setIsLoading(true);
+      setIsError(false);
+      UseFetch(API_LINK + "PermintaanPelanggan/SentPermintaanPelanggan", {
+        idPermintaan: id,
+      })
+        .then((data) => {
+          if (data === "ERROR" || data.length === 0) setIsError(true);
+          else {
+            SweetAlert(
+              "Sukses",
+              "Data permintaan pelanggan berhasil dikirim",
+              "success"
+            );
+            handleSetCurrentPage(currentFilter.page);
+          }
+        })
+        .then(() => setIsLoading(false));
+    }
+  }
+
+  async function handleFinal(id) {
+    const result = await SweetAlert(
+      "Selesaikan Analisa Permintaan Pelanggan",
+      "Permintaan pelanggan ini akan dikirimkan kembali kepada bagian marketing untuk dilakukan penyusunan Rencana Anggaran Kerja (RAK) dan tidak dapat diubah lagi. Apakah Anda yakin ingin menyelesaikan analisa permintaan pelanggan ini?",
+      "info",
+      "Ya, saya yakin!"
+    );
+
+    if (result) {
+      setIsLoading(true);
+      setIsError(false);
+      UseFetch(API_LINK + "PermintaanPelanggan/FinalPermintaanPelanggan", {
+        idPermintaan: id,
+      })
+        .then((data) => {
+          if (data === "ERROR" || data.length === 0) setIsError(true);
+          else {
+            SweetAlert(
+              "Sukses",
+              "Data permintaan pelanggan berhasil diselesaikan",
+              "success"
+            );
+            handleSetCurrentPage(currentFilter.page);
+          }
+        })
+        .then(() => setIsLoading(false));
+    }
+  }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsError(false);
 
       try {
-        await Promise.all(uploadPromises);
-
         const data = await UseFetch(
-          API_LINK + "MasterProduk/CreateProduk",
-          formDataRef.current
+          API_LINK + "PermintaanPelanggan/GetDataPermintaanPelanggan",
+          currentFilter
         );
 
         if (data === "ERROR") {
-          throw new Error("Terjadi kesalahan: Gagal menyimpan data produk.");
+          setIsError(true);
+        } else if (data.length === 0) {
+          setCurrentData(inisialisasiData);
         } else {
-          SweetAlert("Sukses", "Data produk berhasil disimpan", "success");
-          onChangePage("index");
+          const formattedData = data.map((value) => ({
+            ...value,
+            "Tanggal Permintaan": formatDate(value["Tanggal Permintaan"], true),
+            "Estimasi Penawaran": formatDate(value["Estimasi Penawaran"], true),
+            Aksi: [
+              role === "ROL17" && !["Draft", "Batal"].includes(value["Status"])
+                ? "Cancel"
+                : "",
+              ["Draft"].includes(value["Status"]) ? "Delete" : "",
+              "Detail",
+              ["Draft"].includes(value["Status"]) ||
+              (role === "ROL50" &&
+                ["Menunggu Analisa"].includes(value["Status"]))
+                ? "Edit"
+                : "",
+              ["Draft"].includes(value["Status"]) ? "Sent" : "",
+              role === "ROL50" && ["Menunggu Analisa"].includes(value["Status"])
+                ? "Final"
+                : "",
+            ],
+            Alignment: [
+              "center",
+              "center",
+              "center",
+              "left",
+              "center",
+              "center",
+              "center",
+              "center",
+            ],
+          }));
+          setCurrentData(formattedData);
         }
-      } catch (error) {
-        setIsError((prevError) => ({
-          ...prevError,
-          error: true,
-          message: error.message,
-        }));
+      } catch {
+        setIsError(true);
       } finally {
         setIsLoading(false);
       }
-    }
-  };
+    };
 
-  if (isLoading) return <Loading />;
+    fetchData();
+  }, [currentFilter]);
+
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      if (selectedClass) {
+        try {
+          const data = await UseFetch(
+            `${API_LINK}Student/GetStudentsByClass?class=${selectedClass}`
+          );
+          setStudentData(data);
+        } catch {
+          setIsError(true);
+        }
+      }
+    };
+
+    fetchStudentData();
+  }, [selectedClass]);
 
   return (
     <>
-      {isError.error && (
+      <div className="d-flex flex-column">
+        {isError && (
+          <div className="flex-fill">
+            <Alert
+              type="warning"
+              message="Terjadi kesalahan: Gagal mengambil data permintaan pelanggan."
+            />
+          </div>
+        )}
         <div className="flex-fill">
-          <Alert type="danger" message={isError.message} />
-        </div>
-      )}
-      <form onSubmit={handleAdd}>
-        <div className="card">
-          <div className="card-header bg-primary fw-medium text-white">
-            Tambah Data Produk Baru
+          <div className="input-group">
+            {role === "ROL17" && (
+              <Button
+                iconName="add"
+                classType="success"
+                label="Tambah"
+                onClick={() => onChangePage("add")}
+              />
+            )}
+            <Input
+              ref={searchQuery}
+              forInput="pencarianPermintaanPelanggan"
+              placeholder="Cari"
+            />
+            <Button
+              iconName="search"
+              classType="primary px-4"
+              title="Cari"
+              onClick={handleSearch}
+            />
+            <Filter>
+              <DropDown
+                ref={searchFilterSort}
+                forInput="ddUrut"
+                label="Urut Berdasarkan"
+                type="none"
+                arrData={dataFilterSort}
+                defaultValue="[Tanggal Buat] desc"
+              />
+              <DropDown
+                ref={searchFilterStatus}
+                forInput="ddStatus"
+                label="Status"
+                type="semua"
+                arrData={dataFilterStatus}
+                defaultValue=""
+              />
+              <DropDown
+                ref={classFilter}
+                forInput="ddClass"
+                label="Pilih Kelas"
+                type="semua"
+                arrData={dataKelas}
+                onChange={(e) => setSelectedClass(e.target.value)}
+              />
+            </Filter>
           </div>
-          <div className="card-body p-4">
-            <div className="row">
-              <div className="col-lg-4">
-                <Input
-                  type="text"
-                  forInput="namaProduk"
-                  label="Nama Produk"
-                  isRequired
-                  value={formDataRef.current.namaProduk}
-                  onChange={handleInputChange}
-                  errorMessage={errors.namaProduk}
-                />
-              </div>
-              <div className="col-lg-4">
-                <DropDown
-                  forInput="jenisProduk"
-                  label="Jenis Produk"
-                  arrData={listJenisProduk}
-                  isRequired
-                  value={formDataRef.current.jenisProduk}
-                  onChange={handleInputChange}
-                  errorMessage={errors.jenisProduk}
-                />
-              </div>
-              <div className="col-lg-4">
-                <FileUpload
-                  forInput="gambarProduk"
-                  label="Gambar Produk (.pdf, .jpg, .png)"
-                  formatFile=".pdf,.jpg,.png"
-                  ref={fileGambarRef}
-                  onChange={() =>
-                    handleFileChange(fileGambarRef, "pdf,jpg,png")
-                  }
-                  errorMessage={errors.gambarProduk}
-                />
-              </div>
-              <div className="col-lg-12">
-                <Input
-                  type="textarea"
-                  forInput="spesifikasi"
-                  label="Spesifikasi"
-                  value={formDataRef.current.spesifikasi}
-                  onChange={handleInputChange}
-                  errorMessage={errors.spesifikasi}
-                />
-              </div>
+        </div>
+        <div className="mt-3">
+          {isLoading ? (
+            <Loading />
+          ) : (
+            <div className="d-flex flex-column">
+              <Table
+                data={currentData}
+                onDelete={handleDelete}
+                onCancel={handleCancel}
+                onDetail={onChangePage}
+                onEdit={onChangePage}
+                onSent={handleSent}
+                onFinal={handleFinal}
+              />
+              <Paging
+                pageSize={PAGE_SIZE}
+                pageCurrent={currentFilter.page}
+                totalData={currentData[0]["Count"]}
+                navigation={handleSetCurrentPage}
+              />
             </div>
-          </div>
+          )}
         </div>
-        <div className="float-end my-4 mx-1">
-          <Button
-            classType="secondary me-2 px-4 py-2"
-            label="BATAL"
-            onClick={() => onChangePage("index")}
-          />
-          <Button
-            classType="primary ms-2 px-4 py-2"
-            type="submit"
-            label="SIMPAN"
-          />
+        <div className="mt-3">
+          <h3>Data Mahasiswa</h3>
+          {studentData.length > 0 ? (
+            studentData.map((student) => (
+              <div key={student.id} className="student-data">
+                <p>{student.name}</p>
+                <div>
+                  <label>
+                    <input type="radio" name={`option-${student.id}`} value="Kuku" />
+                    Kuku
+                  </label>
+                  <label>
+                    <input type="radio" name={`option-${student.id}`} value="Rambut" />
+                    Rambut
+                  </label>
+                  <label>
+                    <input type="radio" name={`option-${student.id}`} value="Nametag" />
+                    Nametag
+                  </label>
+                  <label>
+                    <input type="radio" name={`option-${student.id}`} value="ID Card" />
+                    ID Card
+                  </label>
+                  <label>
+                    <input type="radio" name={`option-${student.id}`} value="Sepatu" />
+                    Sepatu
+                  </label>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>Tidak ada data mahasiswa untuk kelas yang dipilih.</p>
+          )}
         </div>
-      </form>
+      </div>
     </>
   );
 }

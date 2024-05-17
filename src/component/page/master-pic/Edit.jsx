@@ -10,6 +10,7 @@ import Input from "../../part/Input";
 import FileUpload from "../../part/FileUpload";
 import Loading from "../../part/Loading";
 import Alert from "../../part/Alert";
+import Label from "../../part/Label";
 
 export default function MasterPicEdit({ onChangePage, withID }) {
   const [errors, setErrors] = useState({});
@@ -17,8 +18,8 @@ export default function MasterPicEdit({ onChangePage, withID }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const formDataRef = useRef({
-    idPic: "",
-    usernamePic: "",
+    // idPic: "",
+    username: "",
     namaPic: "",
   });
 
@@ -103,7 +104,7 @@ export default function MasterPicEdit({ onChangePage, withID }) {
       setIsError((prevError) => ({ ...prevError, error: false }));
       setErrors({});
 
-      //const uploadPromises = [];
+      const uploadPromises = [];
 
       //if (fileModulRef.current.files.length > 0) {
       //  uploadPromises.push(
@@ -158,13 +159,13 @@ export default function MasterPicEdit({ onChangePage, withID }) {
               <div className="col-lg-3">
                 <Input
                   type="text"
-                  forInput="usernamePic"
+                  forInput="username"
                   label="Username"
                   isRequired
-                  value={formDataRef.current.usernamePic}
+                  value={formDataRef.current.username}
                   onChange={handleInputChange}
-                  errorMessage={errors.usernamePic}
-                />
+                  errorMessage={errors.username}
+              />
               </div>
               <div className="col-lg-3">
                 <Input

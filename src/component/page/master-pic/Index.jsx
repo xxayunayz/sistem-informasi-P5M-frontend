@@ -17,15 +17,14 @@ const initialData = [
     No: null,
     "Username": null,
     "Nama PIC": null,
-    Status: null,
-    Aksi: null,
+    //Status: null,
     Count: 0,
   },
 ];
 
 const dataFilterSort = [
-  { Value: "[Username Pic] asc", Text: "Username Pic [↑]" },
-  { Value: "[Username Pic] desc", Text: "Username Pic [↓]" },
+  { Value: "[Username] asc", Text: "Username Pic [↑]" },
+  { Value: "[Username] desc", Text: "Username Pic [↓]" },
   { Value: "[Nama Pic] asc", Text: "Nama Pic [↑]" },
   { Value: "[Nama Pic] desc", Text: "Nama Pic [↓]" },
 ];
@@ -42,13 +41,13 @@ export default function MasterPicIndex({ onChangePage }) {
   const [currentFilter, setCurrentFilter] = useState({
     page: 1,
     query: "",
-    sort: "[Username Pic] asc",
+    sort: "[Username] asc",
     status: "Aktif",
   });
 
-  const searchQuery = useRef();
-  const searchFilterSort = useRef();
-  const searchFilterStatus = useRef();
+  const searchQuery = useRef("");
+  const searchFilterSort = useRef("[Username] asc");
+  const searchFilterStatus = useRef("Aktif");
 
   function handleSetCurrentPage(newCurrentPage) {
     setIsLoading(true);
@@ -92,7 +91,7 @@ export default function MasterPicIndex({ onChangePage }) {
   useEffect(() => {
     const fetchData = async () => {
       setIsError(false);
-
+      
       try {
         const data = await UseFetch(
           API_LINK + "MasterPic/GetDataPic",
@@ -107,7 +106,7 @@ export default function MasterPicIndex({ onChangePage }) {
           const formattedData = data.map((value) => ({
             ...value,
             Aksi: ["Toggle", "Detail", "Edit"],
-            Alignment: ["center", "center", "left", "left", "center", "center"],
+            Alignment: ["center", "center", "left", "center", "center", "center"],
           }));
           setCurrentData(formattedData);
         }
@@ -158,7 +157,7 @@ export default function MasterPicIndex({ onChangePage }) {
                 label="Urut Berdasarkan"
                 type="none"
                 arrData={dataFilterSort}
-                defaultValue="[Username Pic] asc"
+                defaultValue="[Nama Pic] asc"
               />
               <DropDown
                 ref={searchFilterStatus}

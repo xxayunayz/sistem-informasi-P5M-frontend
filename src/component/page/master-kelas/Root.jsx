@@ -1,10 +1,10 @@
 import { useState } from "react";
 import MasterKelasIndex from "./Index";
-import MasterProdukAdd from "./Add";
-import MasterProdukDetail from "./Detail";
-import MasterProdukEdit from "./Edit";
+import MasterKelasAdd from "./Add";
+import MasterKelasDetail from "./Detail";
+import MasterKelasEdit from "./Edit";
 
-export default function MasterProduk() {
+export default function MasterKelas() {
   const [pageMode, setPageMode] = useState("index");
   const [dataID, setDataID] = useState();
 
@@ -13,17 +13,17 @@ export default function MasterProduk() {
       case "index":
         return <MasterKelasIndex onChangePage={handleSetPageMode} />;
       case "add":
-        return <MasterProdukAdd onChangePage={handleSetPageMode} />;
+        return <MasterKelasAdd onChangePage={handleSetPageMode} />;
       case "detail":
         return (
-          <MasterProdukDetail
+          <MasterKelasDetail
             onChangePage={handleSetPageMode}
             withID={dataID}
           />
         );
       case "edit":
         return (
-          <MasterProdukEdit onChangePage={handleSetPageMode} withID={dataID} />
+          <MasterKelasEdit onChangePage={handleSetPageMode} withID={dataID} />
         );
     }
   }

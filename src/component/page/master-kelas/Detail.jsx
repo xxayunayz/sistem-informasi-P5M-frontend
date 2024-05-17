@@ -6,17 +6,13 @@ import Label from "../../part/Label";
 import Loading from "../../part/Loading";
 import Alert from "../../part/Alert";
 
-export default function MasterProdukDetail({ onChangePage, withID }) {
+export default function MasterKelasDetail({ onChangePage, withID }) {
   const [isError, setIsError] = useState({ error: false, message: "" });
   const [isLoading, setIsLoading] = useState(true);
 
   const formDataRef = useRef({
-    kodeProduk: "",
-    namaProduk: "",
-    jenisProduk: "",
-    gambarProduk: "",
-    spesifikasi: "",
-    statusProduk: "",
+    namaPic: "",
+    namaKelas: "",
   });
 
   useEffect(() => {
@@ -24,7 +20,7 @@ export default function MasterProdukDetail({ onChangePage, withID }) {
       setIsError((prevError) => ({ ...prevError, error: false }));
 
       try {
-        const data = await UseFetch(API_LINK + "MasterProduk/DetailProduk", {
+        const data = await UseFetch(API_LINK + "MasterKelas/DetailKelas", {
           id: withID,
         });
 
@@ -83,25 +79,6 @@ export default function MasterProdukDetail({ onChangePage, withID }) {
                 data={formDataRef.current.jenisProduk}
               />
             </div>
-            <div className="col-lg-3">
-              <Label
-                forLabel="gambarProduk"
-                title="Gambar Produk"
-                data={
-                  formDataRef.current.gambarProduk.replace("-", "") === "" ? (
-                    "-"
-                  ) : (
-                    <a
-                      href={FILE_LINK + formDataRef.current.gambarProduk}
-                      className="text-decoration-none"
-                      target="_blank"
-                    >
-                      Unduh berkas
-                    </a>
-                  )
-                }
-              />
-            </div>
             <div className="col-lg-6">
               <Label
                 forLabel="spesifikasi"
@@ -111,9 +88,9 @@ export default function MasterProdukDetail({ onChangePage, withID }) {
             </div>
             <div className="col-lg-3">
               <Label
-                forLabel="statusProduk"
+                forLabel="statusKelas"
                 title="Status"
-                data={formDataRef.current.statusProduk}
+                data={formDataRef.current.statusKelas}
               />
             </div>
           </div>
