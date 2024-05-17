@@ -54,36 +54,22 @@ export default function MasterKelasDetail({ onChangePage, withID }) {
       )}
       <div className="card">
         <div className="card-header bg-primary fw-medium text-white">
-          Detail Data Produk
+          Detail Data Kelas
         </div>
         <div className="card-body p-4">
           <div className="row">
             <div className="col-lg-3">
               <Label
-                forLabel="kodeProduk"
-                title="Kode Produk"
-                data={formDataRef.current.kodeProduk}
+                forLabel="idPic"
+                title="Nama Pic"
+                data={formDataRef.current.namaPic}
               />
             </div>
             <div className="col-lg-3">
               <Label
-                forLabel="namaProduk"
-                title="Nama Produk"
-                data={formDataRef.current.namaProduk}
-              />
-            </div>
-            <div className="col-lg-3">
-              <Label
-                forLabel="jenisProduk"
-                title="Jenis"
-                data={formDataRef.current.jenisProduk}
-              />
-            </div>
-            <div className="col-lg-6">
-              <Label
-                forLabel="spesifikasi"
-                title="Spesifikasi"
-                data={formDataRef.current.spesifikasi}
+                forLabel="nama"
+                title="Kelas"
+                data={formDataRef.current.nama}
               />
             </div>
             <div className="col-lg-3">

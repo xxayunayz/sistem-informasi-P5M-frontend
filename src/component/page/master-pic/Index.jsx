@@ -17,7 +17,6 @@ const initialData = [
     No: null,
     "Username": null,
     "Nama PIC": null,
-    //Status: null,
     Count: 0,
   },
 ];

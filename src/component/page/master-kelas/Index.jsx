@@ -67,49 +67,49 @@ export default function MasterKelasIndex({ onChangePage }) {
   }
 
   // ini function yg sebelum dr gpt
-  // function handleSetStatus(id) {
+   function handleSetStatus(id) {
+     setIsLoading(true);
+     setIsError(false);
+     UseFetch(API_LINK + "MasterKelas/SetStatusKelas", {
+       idKelas: id,
+     })
+       .then((data) => {
+         if (data === "ERROR" || data.length === 0) setIsError(true);
+         else {
+           SweetAlert(
+             "Sukses",
+             "Status data kelas berhasil diubah menjadi " + data[0].Status,
+             "success"
+           );
+           handleSetCurrentPage(currentFilter.page);
+         }
+       })
+       .then(() => setIsLoading(false));
+   }
+
+  // async function handleSetStatus(id) {
   //   setIsLoading(true);
   //   setIsError(false);
-  //   UseFetch(API_LINK + "MasterKelas/SetStatusKelas", {
-  //     idKelas: id,
-  //   })
-  //     .then((data) => {
-  //       if (data === "ERROR" || data.length === 0) setIsError(true);
-  //       else {
-  //         SweetAlert(
-  //           "Sukses",
-  //           "Status data kelas berhasil diubah menjadi " + data[0].Status,
-  //           "success"
-  //         );
-  //         handleSetCurrentPage(currentFilter.page);
-  //       }
-  //     })
-  //     .then(() => setIsLoading(false));
+  //   try {
+  //     const data = await UseFetch(API_LINK + "MasterKelas/SetStatusKelas", {
+  //       idKelas: id,
+  //     });
+  //     if (data === "ERROR" || data.length === 0) {
+  //       setIsError(true);
+  //     } else {
+  //       SweetAlert(
+  //         "Sukses",
+  //         "Status data kelas berhasil diubah menjadi " + data[0].Status,
+  //         "success"
+  //       );
+  //       handleSetCurrentPage(currentFilter.page);
+  //     }
+  //   } catch (error) {
+  //     setIsError(true);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
   // }
-
-  async function handleSetStatus(id) {
-    setIsLoading(true);
-    setIsError(false);
-    try {
-      const data = await UseFetch(API_LINK + "MasterKelas/SetStatusKelas", {
-        idKelas: id,
-      });
-      if (data === "ERROR" || data.length === 0) {
-        setIsError(true);
-      } else {
-        SweetAlert(
-          "Sukses",
-          "Status data kelas berhasil diubah menjadi " + data[0].Status,
-          "success"
-        );
-        handleSetCurrentPage(currentFilter.page);
-      }
-    } catch (error) {
-      setIsError(true);
-    } finally {
-      setIsLoading(false);
-    }
-  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -122,7 +122,6 @@ export default function MasterKelasIndex({ onChangePage }) {
         );
 
         if (data === "ERROR") {
-          
           setIsError(true);
         } else if (data.length === 0) {
           setCurrentData(initialData);
@@ -136,7 +135,6 @@ export default function MasterKelasIndex({ onChangePage }) {
 
         }
       } catch {
-        
         setIsError(true);
       } finally {
         setIsLoading(false);
@@ -207,12 +205,12 @@ export default function MasterKelasIndex({ onChangePage }) {
                 onDetail={onChangePage}
                 onEdit={onChangePage}
               />
-              {/* <Paging
+              <Paging
                 pageSize={PAGE_SIZE}
                 pageCurrent={currentFilter.page}
                 totalData={currentData.length > 0 ? currentData[0].Count : 0}
                 navigation={handleSetCurrentPage}
-              /> */}
+              />
             </div>
           )}
         </div>
