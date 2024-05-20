@@ -85,9 +85,11 @@ export default function MasterKelasAdd({ onChangePage }) {
           formDataRef.current
         );
 
-        if (data === "ERROR") {
-          throw new Error("Terjadi kesalahan: Gagal menyimpan data Kelas.");
-        } else {
+        console.log("Response data: ", data); // Tambahkan logging di sini
+
+        if (Array.isArray(data) && data[0]?.hasil === "ERROR") {
+          SweetAlert("Gagal", "Kelas sudah ada.", "error");
+        }else {
           SweetAlert("Sukses", "Data Kelas berhasil disimpan", "success");
           onChangePage("index");
         }

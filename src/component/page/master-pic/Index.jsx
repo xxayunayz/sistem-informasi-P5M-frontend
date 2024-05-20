@@ -104,7 +104,7 @@ export default function MasterPicIndex({ onChangePage }) {
         } else {
           const formattedData = data.map((value) => ({
             ...value,
-            Aksi: ["Toggle", "Detail", "Edit"],
+            Aksi: ["Delete", "Detail", "Edit"],
             Alignment: ["center", "center", "left", "center", "center", "center"],
           }));
           setCurrentData(formattedData);

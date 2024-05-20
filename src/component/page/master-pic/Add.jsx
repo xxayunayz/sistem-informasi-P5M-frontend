@@ -57,9 +57,10 @@ export default function MasterPICAdd({ onChangePage }) {
           API_LINK + "MasterPic/CreatePic",
           formDataRef.current
         );
+        console.log("Response data: ", data); // Tambahkan logging di sini
 
-        if (data === "ERROR") {
-          throw new Error("Terjadi kesalahan: Gagal menyimpan data PIC.");
+        if (Array.isArray(data) && data[0]?.hasil === "ERROR") {
+          SweetAlert("Gagal", "Username sudah ada.", "error");
         } else {
           SweetAlert("Sukses", "Data PIC berhasil disimpan", "success");
           onChangePage("index");

@@ -4,13 +4,12 @@ import { API_LINK } from "../../util/Constants";
 import { validateAllInputs, validateInput } from "../../util/ValidateForm";
 import SweetAlert from "../../util/SweetAlert";
 import UseFetch from "../../util/UseFetch";
-import UploadFile from "../../util/UploadFile";
 import Button from "../../part/Button";
 import Input from "../../part/Input";
-import FileUpload from "../../part/FileUpload";
 import Loading from "../../part/Loading";
 import Alert from "../../part/Alert";
-import Label from "../../part/Label";
+
+
 
 export default function MasterPicEdit({ onChangePage, withID }) {
   const [errors, setErrors] = useState({});
@@ -18,21 +17,19 @@ export default function MasterPicEdit({ onChangePage, withID }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const formDataRef = useRef({
-    // idPic: "",
+    idPic: "",
     username: "",
     namaPic: "",
   });
 
-  const fileModulRef = useRef(null);
-
   const userSchema = object({
-    idProses: string(),
-    usernamePic: string()
-      .max(100, "maksimum 50 karakter")
+    idPic: string(),
+    username: string()
+      .max(100, "maksimum 100 karakter")
       .required("harus diisi"),
     namaPic: string()
-    .max(100, "maksimum 100 karakter")
-    .required("harus diisi"),
+      .max(100, "maksimum 100 karakter")
+      .required("harus diisi"),
   });
 
   useEffect(() => {
@@ -46,7 +43,9 @@ export default function MasterPicEdit({ onChangePage, withID }) {
         );
 
         if (data === "ERROR" || data.length === 0) {
-          throw new Error("Terjadi kesalahan: Gagal mengambil data PIC.");
+          throw new Error(
+            "Terjadi kesalahan: Gagal mengambil data pic."
+          );
         } else {
           formDataRef.current = { ...formDataRef.current, ...data[0] };
         }
@@ -104,28 +103,18 @@ export default function MasterPicEdit({ onChangePage, withID }) {
       setIsError((prevError) => ({ ...prevError, error: false }));
       setErrors({});
 
-      const uploadPromises = [];
-
-      //if (fileModulRef.current.files.length > 0) {
-      //  uploadPromises.push(
-      //    UploadFile(fileModulRef.current).then(
-      //      (data) => (formDataRef.current["modul"] = data.Hasil)
-      //    )
-      //  );
-      //}
-
       try {
-        await Promise.all(uploadPromises);
-
         const data = await UseFetch(
           API_LINK + "MasterPic/EditPic",
           formDataRef.current
         );
 
         if (data === "ERROR") {
-          throw new Error("Terjadi kesalahan: Gagal menyimpan data PIC.");
+          throw new Error(
+            "Terjadi kesalahan: Gagal menyimpan data pic."
+          );
         } else {
-          SweetAlert("Sukses", "Data PIC berhasil disimpan", "success");
+          SweetAlert("Sukses", "Data pic berhasil disimpan", "success");
           onChangePage("index");
         }
       } catch (error) {
@@ -156,7 +145,7 @@ export default function MasterPicEdit({ onChangePage, withID }) {
           </div>
           <div className="card-body p-4">
             <div className="row">
-              <div className="col-lg-3">
+              <div className="col-lg-6">
                 <Input
                   type="text"
                   forInput="username"
@@ -165,9 +154,9 @@ export default function MasterPicEdit({ onChangePage, withID }) {
                   value={formDataRef.current.username}
                   onChange={handleInputChange}
                   errorMessage={errors.username}
-              />
+                />
               </div>
-              <div className="col-lg-3">
+              <div className="col-lg-6">
                 <Input
                   type="text"
                   forInput="namaPic"
