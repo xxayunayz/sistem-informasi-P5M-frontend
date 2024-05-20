@@ -4,77 +4,55 @@ import { API_LINK } from "../../util/Constants";
 import { validateAllInputs, validateInput } from "../../util/ValidateForm";
 import SweetAlert from "../../util/SweetAlert";
 import UseFetch from "../../util/UseFetch";
-import UploadFile from "../../util/UploadFile";
 import Button from "../../part/Button";
 import DropDown from "../../part/Dropdown";
-import Label from "../../part/Label";
 import Input from "../../part/Input";
-import FileUpload from "../../part/FileUpload";
 import Loading from "../../part/Loading";
 import Alert from "../../part/Alert";
 
-const listJenisProduk = [
-  { Value: "Part", Text: "Part" },
-  { Value: "Unit", Text: "Unit" },
-  { Value: "Konstruksi", Text: "Konstruksi" },
-  { Value: "Mass Production", Text: "Mass Production" },
-  { Value: "Lainnya", Text: "Lainnya" },
-];
-
-export default function MasterProdukEdit({ onChangePage, withID }) {
+export default function MasterKelasEdit({ onChangePage }) {
   const [errors, setErrors] = useState({});
   const [isError, setIsError] = useState({ error: false, message: "" });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [listPic, setListPic] = useState([]);
 
   const formDataRef = useRef({
-    idProduk: "",
-    kodeProduk: "",
-    namaProduk: "",
-    jenisProduk: "",
-    gambarProduk: "",
-    spesifikasi: "",
+    idPic: "",
+    nama: "",
   });
-
-  const fileGambarRef = useRef(null);
 
   const userSchema = object({
-    idProduk: string(),
-    kodeProduk: string(),
-    namaProduk: string()
-      .max(100, "maksimum 100 karakter")
-      .required("harus diisi"),
-    jenisProduk: string().required("harus dipilih"),
-    gambarProduk: string(),
-    spesifikasi: string(),
+    nama: string().max(100, "maksimum 100 karakter").required("harus diisi"),
+    idPic: string().required("harus diisi"),
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsError((prevError) => ({ ...prevError, error: false }));
-
-      try {
-        const data = await UseFetch(
-          API_LINK + "MasterProduk/GetDataProdukById",
-          { id: withID }
-        );
-
-        if (data === "ERROR" || data.length === 0) {
-          throw new Error("Terjadi kesalahan: Gagal mengambil data produk.");
-        } else {
-          formDataRef.current = { ...formDataRef.current, ...data[0] };
-        }
-      } catch (error) {
-        setIsError((prevError) => ({
-          ...prevError,
-          error: true,
-          message: error.message,
-        }));
-      } finally {
-        setIsLoading(false);
+  const fetchDataByEndpointAndParams = async (
+    endpoint,
+    params,
+    setter,
+    errorMessage
+  ) => {
+    setIsError({ error: false, message: "" }); // Reset isError state
+    try {
+      const data = await UseFetch(endpoint, params);
+      if (data === "ERROR") {
+        throw new Error(errorMessage);
+      } else {
+        setter(data);
       }
-    };
+    } catch (error) {
+      setIsError({ error: true, message: error.message });
+      setter([]);
+    }
+  };
 
-    fetchData();
+  useEffect(() => {
+    fetchDataByEndpointAndParams(
+      API_LINK + "MasterPic/GetListPic",
+      {},
+      setListPic,
+      "Terjadi kesalahan: Gagal mengambil daftar PIC."
+    );
   }, []);
 
   const handleInputChange = async (e) => {
@@ -84,27 +62,6 @@ export default function MasterProdukEdit({ onChangePage, withID }) {
     setErrors((prevErrors) => ({
       ...prevErrors,
       [validationError.name]: validationError.error,
-    }));
-  };
-
-  const handleFileChange = async (ref, extAllowed) => {
-    const { name, value } = ref.current;
-    const file = ref.current.files[0];
-    const fileName = file.name;
-    const fileSize = file.size;
-    const fileExt = fileName.split(".").pop().toLowerCase();
-    const validationError = await validateInput(name, value, userSchema);
-    let error = "";
-
-    if (fileSize / 1024576 > 10) error = "berkas terlalu besar";
-    else if (!extAllowed.split(",").includes(fileExt))
-      error = "format berkas tidak valid";
-
-    if (error) ref.current.value = "";
-
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      [validationError.name]: error,
     }));
   };
 
@@ -119,39 +76,23 @@ export default function MasterProdukEdit({ onChangePage, withID }) {
 
     if (Object.values(validationErrors).every((error) => !error)) {
       setIsLoading(true);
-      setIsError((prevError) => ({ ...prevError, error: false }));
+      setIsError({ error: false, message: "" }); // Reset isError state
       setErrors({});
 
-      const uploadPromises = [];
-
-      // if (fileGambarRef.current.files.length > 0) {
-      //   uploadPromises.push(
-      //     UploadFile(fileGambarRef.current).then(
-      //       (data) => (formDataRef.current["gambarProduk"] = data.Hasil)
-      //     )
-      //   );
-      // }
-
       try {
-        await Promise.all(uploadPromises);
-
         const data = await UseFetch(
-          API_LINK + "MasterProduk/EditProduk",
+          API_LINK + "MasterKelas/EditKelas",
           formDataRef.current
         );
 
         if (data === "ERROR") {
-          throw new Error("Terjadi kesalahan: Gagal menyimpan data produk.");
+          throw new Error("Terjadi kesalahan: Gagal menyimpan data Kelas.");
         } else {
-          SweetAlert("Sukses", "Data produk berhasil disimpan", "success");
+          SweetAlert("Sukses", "Data Kelas berhasil disimpan", "success");
           onChangePage("index");
         }
       } catch (error) {
-        setIsError((prevError) => ({
-          ...prevError,
-          error: true,
-          message: error.message,
-        }));
+        setIsError({ error: true, message: error.message });
       } finally {
         setIsLoading(false);
       }
@@ -170,47 +111,30 @@ export default function MasterProdukEdit({ onChangePage, withID }) {
       <form onSubmit={handleAdd}>
         <div className="card">
           <div className="card-header bg-primary fw-medium text-white">
-            Ubah Data Produk
+            Tambah Data Kelas Baru
           </div>
           <div className="card-body p-4">
             <div className="row">
-              <div className="col-lg-3">
-                <Label
-                  forLabel="kodeProduk"
-                  title="Kode Produk"
-                  data={formDataRef.current.kodeProduk}
+              <div className="col-lg-6">
+                <DropDown
+                  forInput="idPic"
+                  label="Nama PIC"
+                  arrData={listPic}
+                  isRequired
+                  value={formDataRef.current.idPic}
+                  onChange={handleInputChange}
+                  errorMessage={errors.idPic}
                 />
               </div>
-              <div className="col-lg-3">
+              <div className="col-lg-6">
                 <Input
                   type="text"
-                  forInput="namaProduk"
-                  label="Nama Produk"
+                  forInput="nama"
+                  label="Kelas"
                   isRequired
-                  value={formDataRef.current.namaProduk}
+                  value={formDataRef.current.nama}
                   onChange={handleInputChange}
-                  errorMessage={errors.namaProduk}
-                />
-              </div>
-              <div className="col-lg-3">
-                <DropDown
-                  forInput="jenisProduk"
-                  label="Jenis Produk"
-                  arrData={listJenisProduk}
-                  isRequired
-                  value={formDataRef.current.jenisProduk}
-                  onChange={handleInputChange}
-                  errorMessage={errors.jenisProduk}
-                />
-              </div>
-              <div className="col-lg-12">
-                <Input
-                  type="textarea"
-                  forInput="spesifikasi"
-                  label="Spesifikasi"
-                  value={formDataRef.current.spesifikasi}
-                  onChange={handleInputChange}
-                  errorMessage={errors.spesifikasi}
+                  errorMessage={errors.nama}
                 />
               </div>
             </div>

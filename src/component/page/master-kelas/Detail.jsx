@@ -13,6 +13,7 @@ export default function MasterKelasDetail({ onChangePage, withID }) {
   const formDataRef = useRef({
     namaPic: "",
     namaKelas: "",
+
   });
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function MasterKelasDetail({ onChangePage, withID }) {
         });
 
         if (data === "ERROR" || data.length === 0) {
-          throw new Error("Terjadi kesalahan: Gagal mengambil data produk.");
+          throw new Error("Terjadi kesalahan: Gagal mengambil data kelas.");
         } else {
           formDataRef.current = { ...formDataRef.current, ...data[0] };
         }
@@ -60,37 +61,23 @@ export default function MasterKelasDetail({ onChangePage, withID }) {
           <div className="row">
             <div className="col-lg-3">
               <Label
-                forLabel="kodeProduk"
-                title="Kode Produk"
-                data={formDataRef.current.kodeProduk}
+                forLabel="Nama PIC"
+                title="Nama PIC"
+                data={formDataRef.current.namaPic}
               />
             </div>
             <div className="col-lg-3">
               <Label
-                forLabel="namaProduk"
-                title="Nama Produk"
-                data={formDataRef.current.namaProduk}
+                forLabel="Kelas"
+                title="Kelas"
+                data={formDataRef.current.nama}
               />
             </div>
             <div className="col-lg-3">
               <Label
-                forLabel="jenisProduk"
-                title="Jenis"
-                data={formDataRef.current.jenisProduk}
-              />
-            </div>
-            <div className="col-lg-6">
-              <Label
-                forLabel="spesifikasi"
-                title="Spesifikasi"
-                data={formDataRef.current.spesifikasi}
-              />
-            </div>
-            <div className="col-lg-3">
-              <Label
-                forLabel="statusKelas"
+                forLabel="status"
                 title="Status"
-                data={formDataRef.current.statusKelas}
+                data={formDataRef.current.status}
               />
             </div>
           </div>

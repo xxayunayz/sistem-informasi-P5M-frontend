@@ -17,7 +17,6 @@ const initialData = [
     No: null,
     "Username": null,
     "Nama PIC": null,
-    //Status: null,
     Count: 0,
   },
 ];
@@ -91,17 +90,17 @@ export default function MasterPicIndex({ onChangePage }) {
   useEffect(() => {
     const fetchData = async () => {
       setIsError(false);
+      setIsLoading(true);
       
       try {
-        const data = await UseFetch(
-          API_LINK + "MasterPic/GetDataPic",
-          currentFilter
-        );
-
-        if (data === "ERROR") {
-          setIsError(true);
-        } else if (data.length === 0) {
+        const data = await UseFetch(API_LINK + "MasterPic/GetDataPic", currentFilter);
+  
+        console.log(data); 
+  
+        if (!data || (Array.isArray(data) && data.length === 0)) {
           setCurrentData(initialData);
+        } else if (typeof data === "string" && data === "ERROR") {
+          setIsError(true);
         } else {
           const formattedData = data.map((value) => ({
             ...value,
@@ -110,15 +109,16 @@ export default function MasterPicIndex({ onChangePage }) {
           }));
           setCurrentData(formattedData);
         }
-      } catch {
+      } catch (error) {
+        console.error("Fetch error: ", error);
         setIsError(true);
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchData();
   }, [currentFilter]);
+  
 
   return (
     <>

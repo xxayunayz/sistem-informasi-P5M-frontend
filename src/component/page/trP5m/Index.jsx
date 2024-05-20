@@ -11,15 +11,7 @@ import DropDown from "../../part/Dropdown";
 import Alert from "../../part/Alert";
 import Loading from "../../part/Loading";
 
-const initialData = [
-  {
-    Key: null,
-    No: null,
-    "Kelas": null,
-    "Nama PIC": null,
-    Count: 0,
-  },
-];
+const initialData = [];
 
 const dataFilterSort = [
   { Value: "[Kelas] asc", Text: "Kelas Pic [↑]" },
@@ -30,32 +22,111 @@ const dataFilterStatus = [
   { Value: "Aktif", Text: "Aktif" },
   { Value: "Tidak Aktif", Text: "Tidak Aktif" },
 ];
-  
 
-export default function MasterKelasIndex({ onChangePage }) {
+export default function TrP5mIndex({ onChangePage }) {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentData, setCurrentData] = useState(initialData);
   const [currentFilter, setCurrentFilter] = useState({
-    page: 1,    
+    page: 1,
     query: "",
     sort: "[Kelas] asc",
     status: "Aktif",
+    selectedClass: "",
   });
-  
+
   const searchQuery = useRef("");
   const searchFilterSort = useRef("[Kelas] asc");
   const searchFilterStatus = useRef("Aktif");
+  const [classList, setClassList] = useState([]);
 
-  function handleSetCurrentPage(newCurrentPage) {
+  useEffect(() => {
+    const fetchClassList = async () => {
+      try {
+        const classData = await UseFetch(API_LINK + "MasterKelas/GetDataKelasCombo");
+        if (classData && classData !== "ERROR") {
+          setClassList(classData);
+        }
+      } catch (error) {
+        console.error("Error fetching class data:", error);
+      }
+    };
+
+    fetchClassList();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsError(false);
+      setIsLoading(true);
+
+      try {
+        const response = await fetch(
+          "https://api.polytechnic.astra.ac.id:2906/api_dev/efcc359990d14328fda74beb65088ef9660ca17e/SIA/getListMahasiswa?id_konsentrasi=3"
+        );
+        const jsonData = await response.json();
+
+        console.log("Fetched data:", jsonData);
+
+        if (!jsonData || jsonData === "ERROR") {
+          setIsError(true);
+        } else {
+          const filteredData = jsonData.filter(
+            (item) => item.kelas === currentFilter.selectedClass
+          );
+
+          const formattedData = filteredData.map((value) => ({
+            Nim: value.nim,
+            Nama: value.nama,
+            Kelas: value.kelas,
+            IDCARD: (
+              <input type="checkbox" onChange={() => handleCheckboxChange(value.id)} />
+            ),
+            NameTag: (
+              <input type="checkbox" onChange={() => handleCheckboxChange(value.id)} />
+            ),
+            Rambut: (
+              <input type="checkbox" onChange={() => handleCheckboxChange(value.id)} />
+            ),
+            Kuku: (
+              <input type="checkbox" onChange={() => handleCheckboxChange(value.id)} />
+            ),
+            Sepatu: (
+              <input type="checkbox" onChange={() => handleCheckboxChange(value.id)} />
+            ),
+            // Aksi: ["Toggle", "Detail", "Edit"],
+            Alignment: ["center", "center", "center", "center", "center", "center",  "center","center"],
+          }));
+
+          setCurrentData(formattedData);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setIsError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (currentFilter.selectedClass) {
+      fetchData();
+    }
+  }, [currentFilter.selectedClass]);
+
+  const handleCheckboxChange = (id) => {
+    // Handle checkbox state change
+    console.log("Checkbox state changed for ID:", id);
+  };
+
+  const handleSetCurrentPage = (newCurrentPage) => {
     setIsLoading(true);
     setCurrentFilter((prevFilter) => ({
       ...prevFilter,
       page: newCurrentPage,
     }));
-  }
+  };
 
-  function handleSearch() {
+  const handleSearch = () => {
     setIsLoading(true);
     setCurrentFilter((prevFilter) => ({
       ...prevFilter,
@@ -64,37 +135,16 @@ export default function MasterKelasIndex({ onChangePage }) {
       sort: searchFilterSort.current.value,
       status: searchFilterStatus.current.value,
     }));
-  }
+  };
 
-  // ini function yg sebelum dr gpt
-  // function handleSetStatus(id) {
-  //   setIsLoading(true);
-  //   setIsError(false);
-  //   UseFetch(API_LINK + "MasterKelas/SetStatusKelas", {
-  //     idKelas: id,
-  //   })
-  //     .then((data) => {
-  //       if (data === "ERROR" || data.length === 0) setIsError(true);
-  //       else {
-  //         SweetAlert(
-  //           "Sukses",
-  //           "Status data kelas berhasil diubah menjadi " + data[0].Status,
-  //           "success"
-  //         );
-  //         handleSetCurrentPage(currentFilter.page);
-  //       }
-  //     })
-  //     .then(() => setIsLoading(false));
-  // }
-
-  function handleSetStatus(id) {
+  const handleSetStatus = (id) => {
     setIsLoading(true);
     setIsError(false);
-  
+
     UseFetch(API_LINK + "MasterKelas/SetStatusKelas", { idKel: id })
       .then((response) => {
         if (response === "ERROR" || !response || response.length === 0) {
-          throw new Error('Error or empty response');
+          throw new Error("Error or empty response");
         }
         SweetAlert(
           "Sukses",
@@ -104,48 +154,13 @@ export default function MasterKelasIndex({ onChangePage }) {
         handleSetCurrentPage(currentFilter.page);
       })
       .catch((error) => {
-        console.error('Error:', error); // Log the error for debugging
+        console.error("Error:", error);
         setIsError(true);
       })
       .finally(() => {
         setIsLoading(false);
       });
-  }
-  
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsError(false);
-      setIsLoading(true);
-  
-      try {
-        const data = await UseFetch(API_LINK + "MasterKelas/GetDataKelas", currentFilter);
-  
-        console.log('Fetched data:', data); // Add logging to inspect the response
-  
-        if (!data || data === "ERROR") {
-          setIsError(true);
-        } else if (data.length === 0) {
-          setCurrentData(initialData);
-        } else {
-          const formattedData = data.map((value) => ({
-            ...value,
-            Aksi: ["Toggle", "Detail", "Edit"],
-            Alignment: ["center", "center", "left", "center", "center", "center"],
-          }));
-          setCurrentData(formattedData);
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error); // Add error logging
-        setIsError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-  
-    fetchData();
-  }, [currentFilter]);
-  
+  };
 
   return (
     <>
@@ -159,12 +174,28 @@ export default function MasterKelasIndex({ onChangePage }) {
           </div>
         )}
         <div className="flex-fill">
+          <DropDown
+            forInput="ddClasses"
+            label="Pilih Kelas"
+            type="none"
+            arrData={classList.map((item) => ({
+              Value: item.Kelas,
+              Text: item.Kelas,
+            }))}
+            onChange={(e) => {
+              setCurrentFilter((prevFilter) => ({
+                ...prevFilter,
+                selectedClass: e.target.value,
+              }));
+            }}
+            defaultValue="" 
+          />
           <div className="input-group">
             <Button
               iconName="add"
               classType="success"
-              label="Tambah"
-              onClick={() => onChangePage("add")}
+              label="Simpan"
+              onClick={() => onChangePage("Simpan")}
             />
             <Input
               ref={searchQuery}
@@ -201,7 +232,7 @@ export default function MasterKelasIndex({ onChangePage }) {
           {isLoading ? (
             <Loading />
           ) : (
-             <div className="d-flex flex-column">
+            <div className="d-flex flex-column">
               <Table
                 data={currentData}
                 onToggle={handleSetStatus}
