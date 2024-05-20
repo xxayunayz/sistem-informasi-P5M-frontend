@@ -12,7 +12,7 @@ import Input from "../../part/Input";
 import Loading from "../../part/Loading";
 import Alert from "../../part/Alert";
 
-export default function MasterKursProsesAdd({ onChangePage }) {
+export default function MasterKelasAdd({ onChangePage }) {
   const [errors, setErrors] = useState({});
   const [isError, setIsError] = useState({ error: false, message: "" });
   const [isLoading, setIsLoading] = useState(false);

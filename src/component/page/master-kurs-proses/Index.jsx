@@ -29,7 +29,7 @@ const dataFilterSort = [
   { Value: "[Harga (Rp.)] desc", Text: "Harga (Rp.) [↓]" },
 ];
 
-export default function MasterKursProsesIndex({ onChangePage }) {
+export default function MasterKelasIndex({ onChangePage }) {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentData, setCurrentData] = useState(inisialisasiData);

@@ -54,7 +54,7 @@ export default function MasterPICAdd({ onChangePage }) {
 
       try {
         const data = await UseFetch(
-          API_LINK + "MasterPIC/CreatePIC",
+          API_LINK + "MasterPic/CreatePic",
           formDataRef.current
         );
 

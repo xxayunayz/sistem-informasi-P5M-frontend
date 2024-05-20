@@ -17,7 +17,7 @@ const inisialisasiData = [
   },
 ];
 
-export default function MasterKursProsesDetail({ onChangePage, withID }) {
+export default function MasterKelasDetail({ onChangePage, withID }) {
   const [isError, setIsError] = useState({ error: false, message: "" });
   const [isLoading, setIsLoading] = useState(true);
   const [currentData, setCurrentData] = useState(inisialisasiData);

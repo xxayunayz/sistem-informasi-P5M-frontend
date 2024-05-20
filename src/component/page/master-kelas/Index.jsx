@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { PAGE_SIZE, API_LINK } from "../../util/Constants";
+import SweetAlert from "../../util/SweetAlert";
+import UseFetch from "../../util/UseFetch";
 import Button from "../../part/Button";
 import Input from "../../part/Input";
 import Table from "../../part/Table";
@@ -8,49 +11,41 @@ import DropDown from "../../part/Dropdown";
 import Alert from "../../part/Alert";
 import Loading from "../../part/Loading";
 
+const initialData = [
+  {
+    Key: null,
+    No: null,
+    "Nama PIC": null,
+    "Kelas": null,
+    Count: 0,
+  },
+];
+
+const dataFilterSort = [
+  { Value: "[Kelas] asc", Text: "Kelas Pic [↑]" },
+  { Value: "[Kelas] desc", Text: "Kelas Pic [↓]" },
+];
+
+const dataFilterStatus = [
+  { Value: "Aktif", Text: "Aktif" },
+  { Value: "Tidak Aktif", Text: "Tidak Aktif" },
+];
+  
+
 export default function MasterKelasIndex({ onChangePage }) {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentData, setCurrentData] = useState([]);
+  const [currentData, setCurrentData] = useState(initialData);
   const [currentFilter, setCurrentFilter] = useState({
     page: 1,
     query: "",
-    sort: "[Nama Kelas] asc",
+    sort: "[Kelas] asc",
     status: "Aktif",
-    pic: "",
   });
-
-  const searchQuery = useRef();
-  const searchFilterSort = useRef();
-  const searchFilterStatus = useRef();
-  const searchFilterPIC = useRef();
-
-  const dataDummy = [
-    {
-      Key: 1,
-      No: 1,
-      "Nama Kelas": "Kelas A",
-      "Nama PIC": "John Doe",
-      Status: "Aktif",
-      Count: 100,
-    },
-    {
-      Key: 2,
-      No: 2,
-      "Nama Kelas": "Kelas B",
-      "Nama PIC": "Jane Smith",
-      Status: "Aktif",
-      Count: 150,
-    },
-    {
-      Key: 3,
-      No: 3,
-      "Nama Kelas": "Kelas C",
-      "Nama PIC": "John Doe",
-      Status: "Tidak Aktif",
-      Count: 80,
-    },
-  ];
+  
+  const searchQuery = useRef("");
+  const searchFilterSort = useRef("[Kelas] asc");
+  const searchFilterStatus = useRef("Aktif");
 
   function handleSetCurrentPage(newCurrentPage) {
     setIsLoading(true);
@@ -68,52 +63,80 @@ export default function MasterKelasIndex({ onChangePage }) {
       query: searchQuery.current.value,
       sort: searchFilterSort.current.value,
       status: searchFilterStatus.current.value,
-      pic: searchFilterPIC.current.value,
     }));
   }
 
-  function handleSetStatus(id) {
+  // ini function yg sebelum dr gpt
+  // function handleSetStatus(id) {
+  //   setIsLoading(true);
+  //   setIsError(false);
+  //   UseFetch(API_LINK + "MasterKelas/SetStatusKelas", {
+  //     idKelas: id,
+  //   })
+  //     .then((data) => {
+  //       if (data === "ERROR" || data.length === 0) setIsError(true);
+  //       else {
+  //         SweetAlert(
+  //           "Sukses",
+  //           "Status data kelas berhasil diubah menjadi " + data[0].Status,
+  //           "success"
+  //         );
+  //         handleSetCurrentPage(currentFilter.page);
+  //       }
+  //     })
+  //     .then(() => setIsLoading(false));
+  // }
+
+  async function handleSetStatus(id) {
     setIsLoading(true);
     setIsError(false);
-    const newData = currentData.map((item) => {
-      if (item.Key === id) {
-        return {
-          ...item,
-          Status: item.Status === "Aktif" ? "Tidak Aktif" : "Aktif",
-        };
+    try {
+      const data = await UseFetch(API_LINK + "MasterKelas/SetStatusKelas", {
+        idKelas: id,
+      });
+      if (data === "ERROR" || data.length === 0) {
+        setIsError(true);
+      } else {
+        SweetAlert(
+          "Sukses",
+          "Status data kelas berhasil diubah menjadi " + data[0].Status,
+          "success"
+        );
+        handleSetCurrentPage(currentFilter.page);
       }
-      return item;
-    });
-    setCurrentData(newData);
-    setIsLoading(false);
+    } catch (error) {
+      setIsError(true);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
       setIsError(false);
 
       try {
-        let filteredData = dataDummy.filter(
-          (item) =>
-            item["Nama Kelas"]
-              .toLowerCase()
-              .includes(currentFilter.query.toLowerCase()) &&
-            item.Status === currentFilter.status &&
-            (currentFilter.pic === "" || item["Nama PIC"] === currentFilter.pic)
+        const data = await UseFetch(
+          API_LINK + "MasterKelas/GetDataKelas",
+          currentFilter
         );
 
-        if (currentFilter.sort === "[Nama Kelas] asc") {
-          filteredData.sort((a, b) =>
-            a["Nama Kelas"].localeCompare(b["Nama Kelas"])
-          );
-        } else if (currentFilter.sort === "[Nama Kelas] desc") {
-          filteredData.sort((a, b) =>
-            b["Nama Kelas"].localeCompare(a["Nama Kelas"])
-          );
-        }
+        if (data === "ERROR") {
+          
+          setIsError(true);
+        } else if (data.length === 0) {
+          setCurrentData(initialData);
+        } else {
+          const formattedData = data.map((value) => ({
+            ...value,
+            Aksi: ["Toggle", "Detail", "Edit"],
+            Alignment: ["center", "center", "left", "center", "center", "center"],
+          }));
+          setCurrentData(formattedData);
 
-        setCurrentData(filteredData);
+        }
       } catch {
+        
         setIsError(true);
       } finally {
         setIsLoading(false);
@@ -159,33 +182,15 @@ export default function MasterKelasIndex({ onChangePage }) {
                 forInput="ddUrut"
                 label="Urut Berdasarkan"
                 type="none"
-                arrData={[
-                  { Value: "[Nama Kelas] asc", Text: "Nama Kelas [↑]" },
-                  { Value: "[Nama Kelas] desc", Text: "Nama Kelas [↓]" },
-                ]}
-                defaultValue="[Nama Kelas] asc"
-              />
-              <DropDown
-                ref={searchFilterPIC}
-                forInput="ddPIC"
-                label="PIC"
-                type="none"
-                arrData={[
-                  { Value: "", Text: "Semua" },
-                  { Value: "John Doe", Text: "John Doe" },
-                  { Value: "Jane Smith", Text: "Jane Smith" },
-                ]}
-                defaultValue=""
+                arrData={dataFilterSort}
+                defaultValue="[Kelas] asc"
               />
               <DropDown
                 ref={searchFilterStatus}
                 forInput="ddStatus"
                 label="Status"
                 type="none"
-                arrData={[
-                  { Value: "Aktif", Text: "Aktif" },
-                  { Value: "Tidak Aktif", Text: "Tidak Aktif" },
-                ]}
+                arrData={dataFilterStatus}
                 defaultValue="Aktif"
               />
             </Filter>
@@ -196,26 +201,18 @@ export default function MasterKelasIndex({ onChangePage }) {
             <Loading />
           ) : (
             <div className="d-flex flex-column">
-              {currentData && currentData.length > 0 ? (
-                <>
-                  <Table
-                    data={currentData}
-                    onToggle={handleSetStatus}
-                    onDetail={onChangePage}
-                    onEdit={onChangePage}
-                  />
-                  <Paging
-                    pageCurrent={currentFilter.page}
-                    totalData={currentData.length}
-                    navigation={handleSetCurrentPage}
-                  />
-                </>
-              ) : (
-                <Alert
-                  type="info"
-                  message="Tidak ada data yang ditemukan."
-                />
-              )}
+              <Table
+                data={currentData}
+                onToggle={handleSetStatus}
+                onDetail={onChangePage}
+                onEdit={onChangePage}
+              />
+              {/* <Paging
+                pageSize={PAGE_SIZE}
+                pageCurrent={currentFilter.page}
+                totalData={currentData.length > 0 ? currentData[0].Count : 0}
+                navigation={handleSetCurrentPage}
+              /> */}
             </div>
           )}
         </div>

@@ -124,13 +124,13 @@ export default function MasterProdukEdit({ onChangePage, withID }) {
 
       const uploadPromises = [];
 
-      if (fileGambarRef.current.files.length > 0) {
-        uploadPromises.push(
-          UploadFile(fileGambarRef.current).then(
-            (data) => (formDataRef.current["gambarProduk"] = data.Hasil)
-          )
-        );
-      }
+      // if (fileGambarRef.current.files.length > 0) {
+      //   uploadPromises.push(
+      //     UploadFile(fileGambarRef.current).then(
+      //       (data) => (formDataRef.current["gambarProduk"] = data.Hasil)
+      //     )
+      //   );
+      // }
 
       try {
         await Promise.all(uploadPromises);
@@ -201,19 +201,6 @@ export default function MasterProdukEdit({ onChangePage, withID }) {
                   value={formDataRef.current.jenisProduk}
                   onChange={handleInputChange}
                   errorMessage={errors.jenisProduk}
-                />
-              </div>
-              <div className="col-lg-3">
-                <FileUpload
-                  forInput="gambarProduk"
-                  label="Gambar Produk (.pdf, .jpg, .png)"
-                  formatFile=".pdf,.jpg,.png"
-                  ref={fileGambarRef}
-                  onChange={() =>
-                    handleFileChange(fileGambarRef, "pdf,jpg,png")
-                  }
-                  errorMessage={errors.gambarProduk}
-                  hasExisting={formDataRef.current.gambarProduk}
                 />
               </div>
               <div className="col-lg-12">

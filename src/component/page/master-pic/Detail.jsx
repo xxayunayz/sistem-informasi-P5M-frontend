@@ -11,9 +11,9 @@ export default function MasterPicDetail({ onChangePage, withID }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const formDataRef = useRef({
+    idPic: "",
     usernamePic: "",
     namaPic: "",
-    statusPic: "",
   });
 
   useEffect(() => {
@@ -61,9 +61,9 @@ export default function MasterPicDetail({ onChangePage, withID }) {
           <div className="row">
             <div className="col-lg-3">
               <Label
-                forLabel="usernamePic"
+                forLabel="username"
                 title="Username"
-                data={formDataRef.current.usernamePic}
+                data={formDataRef.current.username}
               />
             </div>
             <div className="col-lg-3">
